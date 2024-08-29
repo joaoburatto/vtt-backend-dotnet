@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Requests.Utility;
+using Requests.Modules;
+using Database;
 
 public class Program
 {
@@ -26,6 +28,9 @@ public class Program
 
         app.UseHttpsRedirection();
 
+        string humidade = "Pouco úmido";
+        LocalData.SaveJson("teste", humidade);
+
         var summaries = new[]
         {
             "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
@@ -33,7 +38,7 @@ public class Program
 
         app.MapGet("/joao", () => PingRequest.Response());
 
-        RollingRequestModule.AddRequests(app);
+        DiceRollingModule.AddRequests(app);
 
         app.MapGet("/weatherforecast", () =>
         {
@@ -49,6 +54,7 @@ public class Program
         })
         .WithName("GetWeatherForecast")
         .WithOpenApi();
+
 
         app.Run();
     }
