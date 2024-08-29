@@ -30,7 +30,6 @@ namespace Requests.Utility
 
 	public class DiceResult
 	{
-
             public int Sides { get; set; } = 20;
             public int Modifier { get; set; } = 0;
             public int Roll { get; set; } = int.MinValue;
@@ -51,7 +50,8 @@ namespace Requests.Utility
 	    public DiceResult RollDice()
 	    {
 		Random random = new Random();
-		int roll = random.Next(1, Sides);
+		// Even tho Sides is the max, it never rolls to the maximum so we add + 1
+		int roll = random.Next(1, Sides + 1);
                 Roll = roll;
                 Result = roll+Modifier; // never negative
                 return this;
@@ -68,15 +68,18 @@ namespace Requests.Utility
         {
             DiceResult dice = new();
 
-            IQueryCollection? query = context.Request.Query;
-            if (query["sides"] != QueryString.Empty)
+	    // Take from query request
+            String? sidesString = context.Request.Query["sides"];
+            String? modifierString = context.Request.Query["modifier"];
+
+            if (sidesString != null)
             {
-                dice.SetSides(query["sides"]!);
+                dice.SetSides(sidesString);
             }
 
-	    if (query["modifier"] != QueryString.Empty)
+	    if (modifierString != null)
 	    {
-                dice.AddModifier(query["modifier"]!);
+                dice.AddModifier(modifierString);
             }
 
             return dice.RollDice().ToJson();
@@ -107,6 +110,8 @@ namespace Requests.Utility
 
 		for (int i = 0; i < 4; i++)
 		{
+		    // Runs only in a range of -1 to 1
+		    // DESPITE the function pointing otherwise. C#.
 		    int randomInt = random.Next(-1, 2);
 		    Rolls.Add(randomInt);
 		}
