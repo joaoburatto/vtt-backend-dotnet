@@ -1,0 +1,6 @@
+@RESTest_HostAddress = http://localhost:5227
+
+GET {{RESTest_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
