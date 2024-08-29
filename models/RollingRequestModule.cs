@@ -42,33 +42,56 @@ namespace Requests.Utility
         public const String EndPoint = "/fudge";
 
 	[Serializable]
-        public class FudgeResult
+        public class FudgeDice
         {
-            public List<int> Rolls {get; set;} = new List<int>();
+
+            public List<int> Rolls {get; set;} = new(); // Vector::new()
             public int Result {get; set;}
-        }
+	    public int Modifier { get; set; }
 
-        public static string Respond(HttpContext context)
-        {
-            FudgeResult result = new FudgeResult
+            public string ToJson()
             {
-                Rolls = new List<int>()
-            };
-
-            Random random = new Random();
-
-            for (int i = 0; i < 4; i++)
-            {
-                int randomInt = random.Next(-1, 2);
-                result.Rolls.Add(randomInt);
+                string jsonResult = JsonSerializer.Serialize(this);
+                return jsonResult;
             }
 
-            result.Result = result.Rolls.Sum();
+	    public FudgeDice Roll()
+	    {
+		Random random = new Random();
 
-            string jsonResult = JsonSerializer.Serialize(result);
+		for (int i = 0; i < 4; i++)
+		{
+		    int randomInt = random.Next(-1, 2);
+		    Rolls.Add(randomInt);
+		}
+
+                Result = Rolls.Sum();
+
+                return this;
+            }
+
+	    public FudgeDice AddModifier(int modifier)
+	    {
+                Modifier = modifier;
+                Result += Modifier;
+                return this;
+            }
+	}
+
+	public static string Respond(HttpContext context)
+        {
+            FudgeDice result = new FudgeDice();
+            result.Roll();
+
             context.Response.ContentType = "application/json";
+            String? modifierString = context.Request.Query["modifier"];
+	    if(modifierString != null)
+	    {
+                var modifier = int.Parse(modifierString);
+                result.AddModifier(modifier);
+            }
 
-            return jsonResult;
+            return result.ToJson();
             // context.Response.WriteAsync(jsonResult).Wait();
         }
 
