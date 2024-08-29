@@ -14,26 +14,72 @@ namespace Requests.Utility
         }
     }
 
+    // [] D100
+    // [x] D20
+    // [ ] D12
+    // [ ] D10
+    // [ ] D8
+    // [ ] D6
+    // [ ] D4
+    // [ ] D2
+
     [Serializable]
     public static class RollDiceRequest
     {
-        public const String EndPoint = "/d20";
+        public const String EndPoint = "/faced";
 
-        public static int Respond(HttpContext context)
-        {
-            Random random = new Random();
+	public class DiceResult
+	{
 
-            String? sidesString = context.Request.Query["sides"];
-            if (sidesString == null)
-            {
-                sidesString = "20";
+            public int Sides { get; set; } = 20;
+            public int Modifier { get; set; } = 0;
+            public int Roll { get; set; } = int.MinValue;
+            public int Result { get; set; } = int.MinValue;
+
+	    public DiceResult SetSides(string sides)
+	    {
+		Sides = int.Parse(sides);
+                return this;
             }
 
-            int sidesValue = int.Parse(sidesString);
+	    public DiceResult AddModifier(string modifier)
+	    {
+                Modifier = int.Parse(modifier);
+                return this;
+            }
 
-            int randomInt = random.Next(1, sidesValue);
+	    public DiceResult RollDice()
+	    {
+		Random random = new Random();
+		int roll = random.Next(1, Sides);
+                Roll = roll;
+                Result = roll+Modifier; // never negative
+                return this;
+            }
 
-            return randomInt;
+	    public string ToJson()
+	    {
+                string jsonResult = JsonSerializer.Serialize(this);
+                return jsonResult;
+	    }
+	}
+
+        public static string Respond(HttpContext context)
+        {
+            DiceResult dice = new();
+
+            IQueryCollection? query = context.Request.Query;
+            if (query["sides"] != QueryString.Empty)
+            {
+                dice.SetSides(query["sides"]!);
+            }
+
+	    if (query["modifier"] != QueryString.Empty)
+	    {
+                dice.AddModifier(query["modifier"]!);
+            }
+
+            return dice.RollDice().ToJson();
         }
     }
 
