@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Requests.Utility;
-using Requests.Modules;
 using Database;
 
 public class Program
@@ -38,7 +37,7 @@ public class Program
 
         app.MapGet("/joao", () => PingRequest.Response());
 
-        DiceRollingModule.AddRequests(app);
+        Requests.Dices.API.AddRequests(app);
 
         app.MapGet("/weatherforecast", () =>
         {
